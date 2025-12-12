@@ -91,6 +91,9 @@ function startGame() {
 
     // Cleanup demo items
     clearItems();
+    // Cleanup caught items
+    basketItemsContainer.innerHTML = '';
+
     clearInterval(spawnTimerId);
     cancelAnimationFrame(gameLoopId);
 
@@ -149,7 +152,8 @@ function gameLoop() {
 
     updateItems();
 
-    if (gameState.isPlaying) {
+    // Check collisions in both modes (visual only for demo)
+    if (gameState.isPlaying || gameState.isDemo) {
         checkCollisions();
     }
 
@@ -206,8 +210,10 @@ function catchItem(itemData, index) {
     // Remove from falling list
     gameState.items.splice(index, 1);
 
-    // Add score
-    addScore(itemData.score, parseFloat(itemData.el.style.left), itemData.y);
+    // Add score only if playing
+    if (!gameState.isDemo) {
+        addScore(itemData.score, parseFloat(itemData.el.style.left), itemData.y);
+    }
 
     // Visual: Move into basket container
     const el = itemData.el;
@@ -256,14 +262,14 @@ function catchItem(itemData, index) {
 
     // Randomize within a range that shifts up as count grows
     const pileOffset = Math.min(count * 2, 25); // shifts up by max 25px
-    const baseTop = 5; // Lowest position (safe)
+    const baseTop = -5; // Lowest position (safe) to prevent bottom overflow with rotation
 
     const randomY = Math.random() * 10; // Variation
     const finalTop = baseTop - pileOffset - randomY;
 
     // Clamp to ensure it doesn't go below bottom limit
     let safeTop = finalTop;
-    if (safeTop > 5) safeTop = 5; // Prevent overflow bottom
+    if (safeTop > -5) safeTop = -5; // Prevent overflow bottom
 
     const randomX = Math.random() * (80 - 28); // 28 is scaled width
     const randomRot = Math.random() * 60 - 30;

@@ -26,6 +26,7 @@ const basket = document.getElementById('basket');
 const basketItemsContainer = document.querySelector('.basket-items'); // New container
 const gameArea = document.getElementById('game-area');
 const progressBarFill = document.getElementById('progress-bar-fill');
+const progressText = document.getElementById('progress-text');
 const startScreen = document.getElementById('start-screen');
 const endScreen = document.getElementById('end-screen');
 const closeBtn = document.getElementById('close-btn');
@@ -219,15 +220,60 @@ function catchItem(itemData, index) {
     // .basket-items is 100% width/height of basket (80x40).
     // Items are 40x40.
 
-    // Let's randomize position slightly to simulate piling
-    const randomX = Math.random() * (80 - 30); // Basket width - Item width (approx scaled)
-    const randomY = Math.random() * 20 - 15; // Range: -15 to +5 (approx)
-    const randomRot = Math.random() * 30 - 15;
+    // Logic for piling and containment
+    // Basket dimensions: 80w x 40h
+    // Item dimensions: 40w x 40h (scaled to 0.7 -> ~28px)
+    // Basket front height: 35px (bottom 0)
+    // Available depth inside: ~35px visually
+
+    // We want items to pile up ("çoğaldıkça belirginleşsin").
+    // We want items NOT to overflow bottom ("sepeti aşıp aşağıya doğru gitmesin").
+
+    const count = basketItemsContainer.children.length;
+    // Calculate a "height" based on count to simulate piling up
+    // Start at bottom and go up.
+    // Bottom of basket container is 40px.
+    // To stay inside, item bottom should be <= 40px (ish).
+    // Item height is ~28px.
+    // So top should be <= 12px.
+    // If we want them to pile UP, we decrease 'top'.
+
+    // Base layer (randomly distributed at bottom)
+    // Top range: 0px to 10px?
+
+    // As count increases, we stack higher.
+    // Let's use a tiered approach or just reduce top based on count.
+
+    // Max capacity before it looks weird? Maybe 10-15 items.
+    // We remove old ones if > 15 already.
+
+    // safeY range:
+    // lowest top: 10px (bottom aligned: 10+28=38px, inside 40px)
+    // highest top: -15px (sticks out significantly)
+
+    // Randomize within a range that shifts up as count grows
+    const pileOffset = Math.min(count * 2, 20); // shifts up by max 20px
+    const baseTop = 10; // Lowest position
+
+    const randomY = Math.random() * 10; // Variation
+    const finalTop = baseTop - pileOffset - randomY;
+
+    // Clamp to ensure it doesn't go below bottom limit (top > 12)
+    // Although baseTop=10 + randomY could be > 12.
+    // Let's explicitly clamp.
+    // Item height ~28px. Basket height 40px.
+    // If top > 12, bottom > 40. Overflow.
+
+    let safeTop = finalTop;
+    if (safeTop > 10) safeTop = 10; // Prevent overflow bottom
+
+    const randomX = Math.random() * (80 - 28); // 28 is scaled width
+    const randomRot = Math.random() * 60 - 30;
 
     el.style.left = randomX + 'px';
-    el.style.top = (10 + randomY) + 'px'; // Base offset + random
-    el.style.transform = `rotate(${randomRot}deg) scale(0.7)`; // Scale down a bit
-    el.className = 'caught-item'; // Changes class/style
+    el.style.top = safeTop + 'px';
+    el.style.transform = `rotate(${randomRot}deg) scale(0.7)`;
+    el.className = 'caught-item';
 
     basketItemsContainer.appendChild(el);
 
@@ -261,6 +307,7 @@ function addScore(points, x, y) {
 function updateProgressBar() {
     const percentage = Math.min((gameState.score / CONFIG.targetScore) * 100, 100);
     progressBarFill.style.width = percentage + '%';
+    progressText.textContent = Math.floor(percentage) + '%';
 }
 
 function endGame() {

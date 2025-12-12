@@ -67,18 +67,35 @@ body {
 
 #progress-bar-container {
     width: 100px; /* Or flex-grow */
-    height: 10px;
+    height: 14px; /* Slightly taller for text */
     background-color: #e0e0e0;
-    border-radius: 5px;
+    border-radius: 7px;
     overflow: hidden;
     flex-grow: 1;
+    position: relative; /* For text positioning */
 }
 
 #progress-bar-fill {
     width: 0%;
     height: 100%;
-    background-color: #0d57d0; /* Gate.tr blue roughly */
+    background: linear-gradient(90deg, #0840a0 0%, #0d57d0 100%); /* Navy blue gradient */
     transition: width 0.3s ease;
+}
+
+#progress-text {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: bold;
+    color: #333; /* Dark text on light bg, switch to white if bar fills? Mixed contrast */
+    text-shadow: 0 0 2px white;
+    z-index: 5;
 }
 
 #close-btn {

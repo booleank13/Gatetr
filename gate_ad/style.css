@@ -180,6 +180,8 @@ body {
     width: 100%;
     height: 100%;
     z-index: 5;
+    /* Allow piling up (overflow top) but cut off bottom */
+    clip-path: polygon(0 -500%, 100% -500%, 100% 100%, 0 100%);
 }
 
 .caught-item {

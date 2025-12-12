@@ -176,10 +176,10 @@ function updateItems() {
 
 function checkCollisions() {
     const basketRect = basket.getBoundingClientRect();
-    const containerRect = adContainer.getBoundingClientRect();
+    const gameAreaRect = gameArea.getBoundingClientRect();
 
-    const basketTop = basketRect.top - containerRect.top;
-    const basketLeft = basketRect.left - containerRect.left;
+    const basketTop = basketRect.top - gameAreaRect.top;
+    const basketLeft = basketRect.left - gameAreaRect.left;
     const basketRight = basketLeft + basketRect.width;
     const basketBottom = basketTop + basketRect.height;
 

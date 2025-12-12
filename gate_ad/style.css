@@ -1,0 +1,264 @@
+body {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #f0f0f0;
+    font-family: 'Arial', sans-serif;
+    overflow: hidden;
+}
+
+#ad-container {
+    width: 320px;
+    height: 480px;
+    position: relative;
+    background-color: #ffffff;
+    overflow: hidden;
+    box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+/* Background Layer */
+#background-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('assets/tr-d-logo-2.png');
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 80%; /* Adjust as needed */
+    opacity: 0.1; /* Make it subtle */
+    z-index: 0;
+}
+
+/* Top Bar */
+#top-bar {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 10;
+}
+
+#logo-bar-wrapper {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 5px 10px;
+    border-radius: 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    flex-grow: 1;
+    margin-right: 10px;
+}
+
+#top-logo {
+    height: 24px; /* Adjust based on aspect ratio */
+    margin-right: 10px;
+}
+
+#progress-bar-container {
+    width: 100px; /* Or flex-grow */
+    height: 10px;
+    background-color: #e0e0e0;
+    border-radius: 5px;
+    overflow: hidden;
+    flex-grow: 1;
+}
+
+#progress-bar-fill {
+    width: 0%;
+    height: 100%;
+    background-color: #0d57d0; /* Gate.tr blue roughly */
+    transition: width 0.3s ease;
+}
+
+#close-btn {
+    width: 30px;
+    height: 30px;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    font-size: 20px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+/* Game Area */
+#game-area {
+    position: absolute;
+    top: 70px; /* Below top bar */
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 5;
+    overflow: hidden;
+}
+
+/* Basket */
+#basket {
+    position: absolute;
+    bottom: 20px;
+    left: 50%; /* JS will control this */
+    transform: translateX(-50%);
+    width: 80px;
+    height: 40px;
+    background: linear-gradient(180deg, #0d57d0 0%, #0840a0 100%);
+    border-radius: 0 0 10px 10px;
+    /* To look like a basket, maybe slightly wider top? keeping simple for now */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+
+/* Add a rim to the basket */
+#basket::before {
+    content: '';
+    position: absolute;
+    top: -5px;
+    left: -5px;
+    right: -5px;
+    height: 10px;
+    background-color: #0b4cb8;
+    border-radius: 5px;
+}
+
+.basket-label {
+    color: white;
+    font-weight: bold;
+    font-size: 14px;
+    z-index: 1;
+}
+
+/* Falling Items */
+.item {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+}
+
+.score-popup {
+    position: absolute;
+    color: #0d57d0;
+    font-weight: bold;
+    font-size: 16px;
+    animation: floatUp 0.8s ease-out forwards;
+    pointer-events: none;
+}
+
+@keyframes floatUp {
+    0% { transform: translateY(0); opacity: 1; }
+    100% { transform: translateY(-30px); opacity: 0; }
+}
+
+/* Overlays */
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 20;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    color: white;
+}
+
+.hidden {
+    display: none;
+}
+
+.content {
+    padding: 20px;
+    max-width: 80%;
+}
+
+.title-text {
+    font-size: 28px;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    line-height: 1.2;
+}
+
+.instructions {
+    margin-bottom: 30px;
+}
+
+.arrow-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    font-size: 30px;
+}
+
+.hand-icon {
+    font-size: 40px;
+    animation: wiggle 1s infinite ease-in-out;
+}
+
+@keyframes wiggle {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-10px); }
+    75% { transform: translateX(10px); }
+}
+
+.tap-to-start {
+    font-size: 14px;
+    opacity: 0.8;
+    margin-top: 20px;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 0.8; }
+    50% { opacity: 0.4; }
+}
+
+/* End Screen */
+.end-logo {
+    width: 150px;
+    margin-bottom: 20px;
+    background: white; /* Make logo visible against dark bg if transparent */
+    padding: 10px;
+    border-radius: 8px;
+}
+
+.reward-text {
+    font-size: 20px;
+    margin-bottom: 30px;
+    line-height: 1.4;
+}
+
+.cta-btn {
+    display: inline-block;
+    background-color: #00d68f; /* Approximate Gate.tr green/teal */
+    color: white;
+    text-decoration: none;
+    padding: 15px 30px;
+    border-radius: 30px;
+    font-weight: bold;
+    font-size: 18px;
+    box-shadow: 0 4px 10px rgba(0, 214, 143, 0.4);
+    transition: transform 0.2s;
+}
+
+.cta-btn:active {
+    transform: scale(0.95);
+}

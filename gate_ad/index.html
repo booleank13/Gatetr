@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gate.tr Ad</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="ad-container">
+        <!-- Background Logo -->
+        <div id="background-layer"></div>
+
+        <!-- Top Bar -->
+        <div id="top-bar">
+            <div id="logo-bar-wrapper">
+                <img src="assets/tr-d-h-logo-2.png" alt="Gate.tr Logo" id="top-logo">
+                <div id="progress-bar-container">
+                    <div id="progress-bar-fill"></div>
+                </div>
+            </div>
+            <div id="close-btn">×</div>
+        </div>
+
+        <!-- Game Area -->
+        <div id="game-area">
+            <!-- Falling items will be added here -->
+            <div id="basket">
+                <div class="basket-label">Gate.tr</div>
+            </div>
+        </div>
+
+        <!-- Start Screen -->
+        <div id="start-screen" class="overlay">
+            <div class="content">
+                <h1 class="title-text">KRİPTOLARI<br>TOPLA</h1>
+                <div class="instructions">
+                    <div class="arrow-container">
+                        <span class="arrow left-arrow">◀</span>
+                        <span class="hand-icon">👆</span>
+                        <span class="arrow right-arrow">▶</span>
+                    </div>
+                </div>
+                <!-- Invisible click area to start usually, or just tap anywhere -->
+                <p class="tap-to-start">Başlamak için dokun</p>
+            </div>
+        </div>
+
+        <!-- End Screen -->
+        <div id="end-screen" class="overlay hidden">
+            <div class="content">
+                <div class="logo-container-end">
+                     <img src="assets/tr-d-h-logo-2.png" alt="Gate.tr Logo" class="end-logo">
+                </div>
+                <p class="reward-text">200 TL'yi almak için<br>Gate.tr'ye kayıt ol</p>
+                <a href="https://www.gate.tr/tr/signup" target="_blank" class="cta-btn">KAYIT OL</a>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

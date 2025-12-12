@@ -13,14 +13,17 @@ const CONFIG = {
 // Game State
 let gameState = {
     isPlaying: false,
+    isDemo: true, // Start in demo mode
     score: 0,
     timeRemaining: CONFIG.gameDuration,
-    items: [] // { element, speed, x, y }
+    items: [], // { element, speed, x, y }
+    caughtItems: [] // Visual references
 };
 
 // DOM Elements
 const adContainer = document.getElementById('ad-container');
 const basket = document.getElementById('basket');
+const basketItemsContainer = document.querySelector('.basket-items'); // New container
 const gameArea = document.getElementById('game-area');
 const progressBarFill = document.getElementById('progress-bar-fill');
 const startScreen = document.getElementById('start-screen');
@@ -41,6 +44,15 @@ function init() {
     // Basket movement
     adContainer.addEventListener('mousemove', moveBasket);
     adContainer.addEventListener('touchmove', moveBasketTouch, { passive: false });
+
+    // Start Demo Mode
+    startDemo();
+}
+
+function startDemo() {
+    gameState.isDemo = true;
+    spawnTimerId = setInterval(spawnItem, 800); // Slightly faster for visual appeal?
+    gameLoopId = requestAnimationFrame(gameLoop);
 }
 
 function moveBasket(e) {
@@ -65,20 +77,7 @@ function updateBasketPosition(x) {
     const basketWidth = basket.offsetWidth;
     const containerWidth = adContainer.offsetWidth;
 
-    // Clamp x
-    let newLeft = x - basketWidth / 2;
-    if (newLeft < 0) newLeft = 0;
-    if (newLeft > containerWidth - basketWidth) newLeft = containerWidth - basketWidth;
-
-    basket.style.left = (newLeft + basketWidth / 2) + 'px'; // Style uses center alignment trick in CSS?
-    // Wait, in CSS: left: 50%; transform: translateX(-50%);
-    // So if I set left to a pixel value, it will still be offset by -50%.
-    // To make it easier, let's change CSS logic via inline style.
-
-    // Actually, if I set `left: ${x}px`, with `transform: translateX(-50%)`,
-    // `x` should be the center point of the basket.
-    // So I just need to clamp the center point.
-
+    // Clamp center
     let center = x;
     if (center < basketWidth / 2) center = basketWidth / 2;
     if (center > containerWidth - basketWidth / 2) center = containerWidth - basketWidth / 2;
@@ -87,19 +86,24 @@ function updateBasketPosition(x) {
 }
 
 function startGame() {
+    if (gameState.isPlaying) return;
+
+    // Cleanup demo items
+    clearItems();
+    clearInterval(spawnTimerId);
+    cancelAnimationFrame(gameLoopId);
+
     startScreen.classList.add('hidden');
     gameState.isPlaying = true;
+    gameState.isDemo = false;
     gameState.score = 0;
     gameState.timeRemaining = CONFIG.gameDuration;
     gameState.items = [];
 
     updateProgressBar();
 
-    // Spawn first item immediately? No, 1s as per prompt implies interval.
-    // "kriptolar 1 sn de bir aşağı düşecek" -> "cryptos will fall once every 1 second"
+    // Start actual game
     spawnTimerId = setInterval(spawnItem, CONFIG.spawnInterval);
-
-    // Game Loop
     gameLoopId = requestAnimationFrame(gameLoop);
 
     // Countdown
@@ -111,8 +115,16 @@ function startGame() {
     }, 1000);
 }
 
+function clearItems() {
+    gameState.items.forEach(item => item.el.remove());
+    gameState.items = [];
+}
+
 function spawnItem() {
-    if (!gameState.isPlaying) return;
+    // Determine spawn parent: gameArea or background-layer?
+    // If in demo, maybe we want them behind the overlay text?
+    // But overlay is z-index 40.
+    // If we put them in gameArea (z-index 5), they will be behind overlay. Correct.
 
     const itemConfig = CONFIG.items[Math.floor(Math.random() * CONFIG.items.length)];
     const itemEl = document.createElement('img');
@@ -126,16 +138,19 @@ function spawnItem() {
     gameState.items.push({
         el: itemEl,
         y: -40,
-        speed: 3 + Math.random() * 2, // Random speed
+        speed: 3 + Math.random() * 2,
         score: itemConfig.score
     });
 }
 
 function gameLoop() {
-    if (!gameState.isPlaying) return;
+    // Run loop in both demo and play mode
 
     updateItems();
-    checkCollisions();
+
+    if (gameState.isPlaying) {
+        checkCollisions();
+    }
 
     gameLoopId = requestAnimationFrame(gameLoop);
 }
@@ -156,27 +171,24 @@ function updateItems() {
 
 function checkCollisions() {
     const basketRect = basket.getBoundingClientRect();
-    const basketTop = basketRect.top - adContainer.getBoundingClientRect().top; // Relative to container
-    const basketLeft = basketRect.left - adContainer.getBoundingClientRect().left;
-    const basketRight = basketLeft + basketRect.width;
-    const basketBottom = basketTop + basketRect.height; // Approximation
+    const containerRect = adContainer.getBoundingClientRect();
 
-    // Since basket has a specific shape (top rim), we check collision with the top part primarily
+    const basketTop = basketRect.top - containerRect.top;
+    const basketLeft = basketRect.left - containerRect.left;
+    const basketRight = basketLeft + basketRect.width;
+    const basketBottom = basketTop + basketRect.height;
 
     for (let i = gameState.items.length - 1; i >= 0; i--) {
         const item = gameState.items[i];
 
-        // Simple AABB collision detection relative to container
-        // Item rect
         const itemLeft = parseFloat(item.el.style.left);
-        const itemRight = itemLeft + 40; // width
-        const itemBottom = item.y + 40; // height
+        const itemRight = itemLeft + 40;
+        const itemBottom = item.y + 40;
         const itemTop = item.y;
 
-        // Check overlap
-        // We want to catch them when they hit the top of the basket roughly
+        // Collision logic
         const hitBasket = (
-            itemBottom >= basketTop &&
+            itemBottom >= basketTop + 10 && // Allow to sink in a bit? Or hit rim (top - 5?)
             itemTop < basketBottom &&
             itemRight > basketLeft &&
             itemLeft < basketRight
@@ -184,10 +196,44 @@ function checkCollisions() {
 
         if (hitBasket) {
             // Caught!
-            addScore(item.score, itemLeft, itemTop);
-            item.el.remove();
-            gameState.items.splice(i, 1);
+            catchItem(item, i);
         }
+    }
+}
+
+function catchItem(itemData, index) {
+    // Remove from falling list
+    gameState.items.splice(index, 1);
+
+    // Add score
+    addScore(itemData.score, parseFloat(itemData.el.style.left), itemData.y);
+
+    // Visual: Move into basket container
+    const el = itemData.el;
+
+    // Calculate relative position to keep it roughly where it hit?
+    // Or just randomize inside basket?
+    // "Sepete giren kriptolar sepetin içinde biriksin"
+
+    // We append to .basket-items (relative to basket)
+    // .basket-items is 100% width/height of basket (80x40).
+    // Items are 40x40.
+
+    // Let's randomize position slightly to simulate piling
+    const randomX = Math.random() * (80 - 30); // Basket width - Item width (approx scaled)
+    const randomY = Math.random() * 20 - 15; // Range: -15 to +5 (approx)
+    const randomRot = Math.random() * 30 - 15;
+
+    el.style.left = randomX + 'px';
+    el.style.top = (10 + randomY) + 'px'; // Base offset + random
+    el.style.transform = `rotate(${randomRot}deg) scale(0.7)`; // Scale down a bit
+    el.className = 'caught-item'; // Changes class/style
+
+    basketItemsContainer.appendChild(el);
+
+    // Manage piling? Limit?
+    if (basketItemsContainer.children.length > 15) {
+        basketItemsContainer.removeChild(basketItemsContainer.firstChild);
     }
 }
 
@@ -207,10 +253,6 @@ function addScore(points, x, y) {
         popup.remove();
     }, 800);
 
-    // Check win condition immediately?
-    // "finalde 200 puan topladığında" -> when 200 points collected finally.
-    // Does it end immediately or wait for time?
-    // Usually "topladığında" (when collected) implies immediately.
     if (gameState.score >= CONFIG.targetScore) {
         endGame();
     }
@@ -227,43 +269,12 @@ function endGame() {
     clearInterval(countdownTimerId);
     cancelAnimationFrame(gameLoopId);
 
-    // Check if score >= 200
-    // Prompt says: "finalde 200 puan topladığında ... çıkacak"
-    // And "oyunda kaybetmek olmayacak" (no losing).
-    // So even if time runs out and score < 200?
-    // "10 sn sürecek ve oyunda kaybetmek olmayacak." -> Game lasts 10s, no lose.
-    // "finalde 200 puan topladığında 200 tl yi almak için ... çıkacak"
-    // This implies if they get 200 points, they get the offer.
-    // What if they don't get 200 points in 10s?
-    // Given ad mechanics, it's likely rigged or easy enough to win.
-    // Or the end screen shows up anyway?
-    // "200 puan topladığında" -> Conditional.
-    // However, usually ads want users to convert.
-    // I will assume if time runs out, we show the end screen anyway,
-    // maybe implying they did a good job or just show the signup.
-    // But strictly reading: "When 200 points collected ... signup appears".
-
-    // Let's assume if score >= 200 OR time ends (and we pretend they won or show it anyway).
-    // Actually, with falling speed and values, getting 200 in 10s:
-    // 1 item per second = 10 items.
-    // Max score = 10 * 50 = 500.
-    // Min score (if all tethers) = 10 * 20 = 200.
-    // So it is guaranteed to reach 200 if they catch everything.
-    // If they miss some, they might fail.
-    // "oyunda kaybetmek olmayacak" might mean "Game Over" screen doesn't exist, just the Signup screen.
-    // So I will show the signup screen regardless of score at the end,
-    // OR immediately when they hit 200.
-
-    // If they hit 200 early, end game and show screen? "finalde 200 puan topladığında"
-
     setTimeout(() => {
         endScreen.classList.remove('hidden');
     }, 500);
 }
 
 function closeAd() {
-    // Usually communicates with parent frame or closes window
-    // For demo, we can just hide container or reload
     adContainer.style.display = 'none';
     console.log("Ad closed");
 }

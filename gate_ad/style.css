@@ -52,10 +52,10 @@ body {
 #logo-bar-wrapper {
     display: flex;
     align-items: center;
-    background: rgba(255, 255, 255, 0.9);
+    background: #ffffff;
     padding: 5px 10px;
     border-radius: 20px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
     flex-grow: 1;
     margin-right: 10px;
 }
@@ -110,21 +110,34 @@ body {
 #basket {
     position: absolute;
     bottom: 20px;
-    left: 50%; /* JS will control this */
+    left: 50%;
     transform: translateX(-50%);
     width: 80px;
     height: 40px;
+    /* Container for layout */
+    display: flex;
+    justify-content: center;
+    z-index: 10;
+}
+
+/* Basket Front Face - Occludes caught items */
+.basket-front {
+    position: absolute;
+    bottom: 0; /* Aligned to bottom */
+    left: 0;
+    width: 100%;
+    height: 35px; /* Shorter than basket container to allow items to peek */
     background: linear-gradient(180deg, #0d57d0 0%, #0840a0 100%);
     border-radius: 0 0 10px 10px;
-    /* To look like a basket, maybe slightly wider top? keeping simple for now */
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    z-index: 20;
     display: flex;
     justify-content: center;
     align-items: center;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
 }
 
-/* Add a rim to the basket */
-#basket::before {
+/* Basket Rim */
+.basket-front::before {
     content: '';
     position: absolute;
     top: -5px;
@@ -139,8 +152,26 @@ body {
     color: white;
     font-weight: bold;
     font-size: 14px;
-    z-index: 1;
+    z-index: 21;
 }
+
+/* Container for caught items - behind the front face */
+.basket-items {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 5;
+}
+
+.caught-item {
+    position: absolute;
+    width: 30px; /* Slightly smaller */
+    height: 30px;
+    z-index: 10; /* Behind front (20) */
+}
+
 
 /* Falling Items */
 .item {
@@ -157,6 +188,7 @@ body {
     font-size: 16px;
     animation: floatUp 0.8s ease-out forwards;
     pointer-events: none;
+    z-index: 30;
 }
 
 @keyframes floatUp {
@@ -171,8 +203,8 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
-    z-index: 20;
+    background-color: rgba(0, 0, 0, 0.6); /* Reduced opacity for demo visibility */
+    z-index: 40; /* Higher than game */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -235,7 +267,7 @@ body {
 .end-logo {
     width: 150px;
     margin-bottom: 20px;
-    background: white; /* Make logo visible against dark bg if transparent */
+    background: white;
     padding: 10px;
     border-radius: 8px;
 }

@@ -248,24 +248,22 @@ function catchItem(itemData, index) {
     // We remove old ones if > 15 already.
 
     // safeY range:
-    // lowest top: 10px (bottom aligned: 10+28=38px, inside 40px)
-    // highest top: -15px (sticks out significantly)
+    // Item scaled to 0.7 around center. Visual height ~28px.
+    // Visual bottom = top + 20 (center offset) + 14 (half scaled height) = top + 34.
+    // Container height = 40px.
+    // Max visual bottom = 39px (safe margin).
+    // top + 34 <= 39 => top <= 5.
 
     // Randomize within a range that shifts up as count grows
-    const pileOffset = Math.min(count * 2, 20); // shifts up by max 20px
-    const baseTop = 10; // Lowest position
+    const pileOffset = Math.min(count * 2, 25); // shifts up by max 25px
+    const baseTop = 5; // Lowest position (safe)
 
     const randomY = Math.random() * 10; // Variation
     const finalTop = baseTop - pileOffset - randomY;
 
-    // Clamp to ensure it doesn't go below bottom limit (top > 12)
-    // Although baseTop=10 + randomY could be > 12.
-    // Let's explicitly clamp.
-    // Item height ~28px. Basket height 40px.
-    // If top > 12, bottom > 40. Overflow.
-
+    // Clamp to ensure it doesn't go below bottom limit
     let safeTop = finalTop;
-    if (safeTop > 10) safeTop = 10; // Prevent overflow bottom
+    if (safeTop > 5) safeTop = 5; // Prevent overflow bottom
 
     const randomX = Math.random() * (80 - 28); // 28 is scaled width
     const randomRot = Math.random() * 60 - 30;

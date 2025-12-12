@@ -175,13 +175,14 @@ body {
 /* Container for caught items - behind the front face */
 .basket-items {
     position: absolute;
-    top: 0;
+    bottom: 0;
     left: 0;
     width: 100%;
-    height: 100%;
+    height: 150px; /* Extended height for piling */
     z-index: 5;
-    /* Allow piling up (overflow top) but cut off bottom */
-    clip-path: polygon(0 -500%, 100% -500%, 100% 100%, 0 100%);
+    /* Clip strictly at the bottom curve, allow items inside */
+    overflow: hidden;
+    border-radius: 0 0 10px 10px;
 }
 
 .caught-item {

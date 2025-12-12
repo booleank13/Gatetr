@@ -274,8 +274,14 @@ function catchItem(itemData, index) {
     const randomX = Math.random() * (80 - 28); // 28 is scaled width
     const randomRot = Math.random() * 60 - 30;
 
+    // Adjust top for the new container height (150px)
+    // Container top is at -110 relative to basket top.
+    // We want item at safeTop (relative to basket top).
+    // offset = 150 (container h) - 40 (basket h) = 110.
+    const containerTop = safeTop + 110;
+
     el.style.left = randomX + 'px';
-    el.style.top = safeTop + 'px';
+    el.style.top = containerTop + 'px';
     el.style.transform = `rotate(${randomRot}deg) scale(0.7)`;
     el.className = 'caught-item';
 
